@@ -1,0 +1,931 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Responsive -->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <!-- SEO / Browser -->
+  <meta
+    name="description"
+    content="WMS Pro - Warehouse Management System"
+  >
+  <meta name="theme-color" content="#16a34a">
+  <meta name="color-scheme" content="light">
+
+  <title>WMS Pro | Warehouse Management System</title>
+
+  <style>
+    /* =========================================================
+       RESET
+       ========================================================= */
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      overflow: hidden;
+      background: #f5f7f8;
+      font-family:
+        Inter,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+      color: #1f2937;
+    }
+
+    button {
+      font: inherit;
+    }
+
+
+    /* =========================================================
+       APP CONTAINER
+       ========================================================= */
+
+    #app {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f5f7f8;
+    }
+
+
+    /* =========================================================
+       WMS IFRAME
+       ========================================================= */
+
+    #wmsFrame {
+      position: absolute;
+      inset: 0;
+
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      margin: 0;
+      padding: 0;
+
+      border: 0;
+      outline: 0;
+
+      background: #ffffff;
+
+      opacity: 0;
+
+      transition:
+        opacity 0.25s ease;
+
+      z-index: 10;
+    }
+
+    #wmsFrame.loaded {
+      opacity: 1;
+    }
+
+
+    /* =========================================================
+       LOADING SCREEN
+       ========================================================= */
+
+    #loading {
+      position: fixed;
+      inset: 0;
+
+      z-index: 1000;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 100%;
+      height: 100%;
+
+      background:
+        linear-gradient(
+          135deg,
+          #ffffff 0%,
+          #f8fafc 50%,
+          #f0fdf4 100%
+        );
+
+      transition:
+        opacity 0.3s ease,
+        visibility 0.3s ease;
+    }
+
+    #loading.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loading-container {
+      width: min(420px, calc(100% - 40px));
+      padding: 36px 30px;
+
+      text-align: center;
+
+      background: rgba(255, 255, 255, 0.96);
+
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+
+      box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.08);
+    }
+
+
+    /* =========================================================
+       LOGO
+       ========================================================= */
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      gap: 12px;
+
+      margin-bottom: 24px;
+    }
+
+    .brand-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 48px;
+      height: 48px;
+
+      border-radius: 12px;
+
+      background: #16a34a;
+
+      color: #ffffff;
+
+      font-size: 24px;
+      font-weight: 800;
+
+      box-shadow:
+        0 8px 20px rgba(22, 163, 74, 0.22);
+    }
+
+    .brand-text {
+      text-align: left;
+    }
+
+    .brand-title {
+      margin: 0;
+
+      font-size: 20px;
+      font-weight: 800;
+
+      letter-spacing: -0.4px;
+
+      color: #111827;
+    }
+
+    .brand-subtitle {
+      margin-top: 3px;
+
+      font-size: 12px;
+      font-weight: 500;
+
+      color: #6b7280;
+    }
+
+
+    /* =========================================================
+       SPINNER
+       ========================================================= */
+
+    .spinner-wrapper {
+      display: flex;
+      justify-content: center;
+
+      margin: 10px 0 18px;
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+
+      border: 4px solid #dcfce7;
+      border-top-color: #16a34a;
+
+      border-radius: 50%;
+
+      animation:
+        wmsSpin 0.8s linear infinite;
+    }
+
+    @keyframes wmsSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+
+    /* =========================================================
+       LOADING TEXT
+       ========================================================= */
+
+    .loading-title {
+      margin: 0;
+
+      font-size: 16px;
+      font-weight: 700;
+
+      color: #111827;
+    }
+
+    .loading-text {
+      margin: 8px 0 0;
+
+      font-size: 13px;
+      line-height: 1.6;
+
+      color: #6b7280;
+    }
+
+
+    /* =========================================================
+       PROGRESS
+       ========================================================= */
+
+    .progress {
+      width: 100%;
+      height: 4px;
+
+      margin-top: 22px;
+
+      overflow: hidden;
+
+      border-radius: 99px;
+
+      background: #e5e7eb;
+    }
+
+    .progress-bar {
+      width: 35%;
+      height: 100%;
+
+      border-radius: inherit;
+
+      background: #16a34a;
+
+      animation:
+        loadingProgress 1.5s ease-in-out infinite;
+    }
+
+    @keyframes loadingProgress {
+      0% {
+        transform: translateX(-120%);
+      }
+
+      50% {
+        transform: translateX(150%);
+      }
+
+      100% {
+        transform: translateX(320%);
+      }
+    }
+
+
+    /* =========================================================
+       ERROR SCREEN
+       ========================================================= */
+
+    #errorScreen {
+      position: fixed;
+      inset: 0;
+
+      z-index: 2000;
+
+      display: none;
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+
+      background: #f8fafc;
+    }
+
+    #errorScreen.show {
+      display: flex;
+    }
+
+    .error-container {
+      width: min(500px, 100%);
+
+      padding: 36px 30px;
+
+      text-align: center;
+
+      background: #ffffff;
+
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+
+      box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.08);
+    }
+
+    .error-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 58px;
+      height: 58px;
+
+      margin: 0 auto 18px;
+
+      border-radius: 50%;
+
+      background: #fef2f2;
+
+      color: #dc2626;
+
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .error-title {
+      margin: 0;
+
+      font-size: 20px;
+      font-weight: 800;
+
+      color: #111827;
+    }
+
+    .error-text {
+      margin: 10px 0 22px;
+
+      font-size: 14px;
+      line-height: 1.7;
+
+      color: #6b7280;
+    }
+
+    .error-actions {
+      display: flex;
+      flex-wrap: wrap;
+
+      justify-content: center;
+
+      gap: 10px;
+    }
+
+    .btn {
+      min-height: 42px;
+
+      padding: 0 18px;
+
+      border: 0;
+      border-radius: 9px;
+
+      cursor: pointer;
+
+      font-size: 14px;
+      font-weight: 700;
+
+      transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: #16a34a;
+      color: #ffffff;
+
+      box-shadow:
+        0 6px 16px rgba(22, 163, 74, 0.18);
+    }
+
+    .btn-primary:hover {
+      background: #15803d;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+
+    /* =========================================================
+       FOOTER / STATUS
+       ========================================================= */
+
+    .system-status {
+      margin-top: 18px;
+
+      font-size: 11px;
+
+      color: #9ca3af;
+    }
+
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @media (max-width: 640px) {
+
+      .loading-container,
+      .error-container {
+        padding: 28px 20px;
+        border-radius: 15px;
+      }
+
+      .brand-title {
+        font-size: 18px;
+      }
+
+      .brand-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 21px;
+      }
+
+      .error-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+
+    /* =========================================================
+       REDUCED MOTION
+       ========================================================= */
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+
+
+<body>
+
+  <div id="app">
+
+    <!-- =======================================================
+         LOADING
+         ======================================================= -->
+
+    <div id="loading">
+
+      <div class="loading-container">
+
+        <div class="brand">
+
+          <div class="brand-icon">
+            W
+          </div>
+
+          <div class="brand-text">
+
+            <h1 class="brand-title">
+              WMS Pro
+            </h1>
+
+            <div class="brand-subtitle">
+              Warehouse Management System
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="spinner-wrapper">
+          <div class="spinner"></div>
+        </div>
+
+
+        <h2 class="loading-title">
+          Memuat sistem...
+        </h2>
+
+        <p class="loading-text">
+          Menghubungkan ke Warehouse Management System.
+          Mohon tunggu sebentar.
+        </p>
+
+
+        <div class="progress">
+          <div class="progress-bar"></div>
+        </div>
+
+
+        <div class="system-status">
+          WMS Pro • Production
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         WMS APPLICATION
+         ======================================================= -->
+
+    <iframe
+      id="wmsFrame"
+      title="WMS Pro - Warehouse Management System"
+src="https://script.google.com/macros/s/AKfycby-PGVflVKmVqq--L8YzXS6rSbIM300x2luplUkGOgQoJtlnteA4a-OAZsVeM6gFPS4/exec"
+
+      allow="fullscreen"
+      allowfullscreen
+      loading="eager"
+      referrerpolicy="strict-origin-when-cross-origin">
+    </iframe>
+
+
+    <!-- =======================================================
+         ERROR SCREEN
+         ======================================================= -->
+
+    <div id="errorScreen">
+
+      <div class="error-container">
+
+        <div class="error-icon">
+          !
+        </div>
+
+        <h2 class="error-title">
+          WMS Tidak Dapat Dimuat
+        </h2>
+
+        <p class="error-text">
+          Sistem WMS belum berhasil terhubung.
+          Periksa koneksi internet atau pastikan deployment
+          Google Apps Script masih aktif.
+        </p>
+
+        <div class="error-actions">
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="retryButton">
+            Muat Ulang
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="openButton">
+            Buka WMS
+          </button>
+
+        </div>
+
+        <div class="system-status">
+          WMS Pro • Connection Error
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+    "use strict";
+
+    /* =========================================================
+       CONFIGURATION
+       ========================================================= */
+
+    const WMS_CONFIG = {
+
+      // URL Google Apps Script
+      WMS_URL:
+        "https://script.google.com/macros/s/AKfycby-PGVflVKmVqq--L8YzXS6rSbIM300x2luplUkGOgQoJtlnteA4a-OAZsVeM6gFPS4/exec",
+
+      // Maksimal waktu menunggu sebelum dianggap bermasalah
+      LOAD_TIMEOUT: 30000,
+
+      // Delay sebelum loading screen ditutup
+      HIDE_DELAY: 300
+
+    };
+
+
+    /* =========================================================
+       DOM
+       ========================================================= */
+
+    const frame =
+      document.getElementById("wmsFrame");
+
+    const loading =
+      document.getElementById("loading");
+
+    const errorScreen =
+      document.getElementById("errorScreen");
+
+    const retryButton =
+      document.getElementById("retryButton");
+
+    const openButton =
+      document.getElementById("openButton");
+
+
+    /* =========================================================
+       STATE
+       ========================================================= */
+
+    let loaded = false;
+    let timeoutId = null;
+
+
+    /* =========================================================
+       INITIALIZE
+       ========================================================= */
+
+    function initializeWMS() {
+
+      loaded = false;
+
+      hideError();
+
+      showLoading();
+
+      clearTimeout(timeoutId);
+
+      timeoutId = setTimeout(function () {
+
+        if (!loaded) {
+
+          showError();
+
+        }
+
+      }, WMS_CONFIG.LOAD_TIMEOUT);
+
+    }
+
+
+    /* =========================================================
+       FRAME LOADED
+       ========================================================= */
+
+    frame.addEventListener("load", function () {
+
+      loaded = true;
+
+      clearTimeout(timeoutId);
+
+      frame.classList.add("loaded");
+
+      setTimeout(function () {
+
+        loading.classList.add("hidden");
+
+      }, WMS_CONFIG.HIDE_DELAY);
+
+    });
+
+
+    /* =========================================================
+       FRAME ERROR
+       ========================================================= */
+
+    frame.addEventListener("error", function () {
+
+      loaded = false;
+
+      clearTimeout(timeoutId);
+
+      showError();
+
+    });
+
+
+    /* =========================================================
+       SHOW LOADING
+       ========================================================= */
+
+    function showLoading() {
+
+      loading.classList.remove("hidden");
+
+      frame.classList.remove("loaded");
+
+    }
+
+
+    /* =========================================================
+       SHOW ERROR
+       ========================================================= */
+
+    function showError() {
+
+      loading.classList.add("hidden");
+
+      errorScreen.classList.add("show");
+
+    }
+
+
+    /* =========================================================
+       HIDE ERROR
+       ========================================================= */
+
+    function hideError() {
+
+      errorScreen.classList.remove("show");
+
+    }
+
+
+    /* =========================================================
+       RELOAD WMS
+       ========================================================= */
+
+    function reloadWMS() {
+
+      hideError();
+
+      showLoading();
+
+      loaded = false;
+
+      clearTimeout(timeoutId);
+
+      /*
+       * Menambahkan timestamp agar browser tidak memakai
+       * cache iframe lama.
+       */
+
+      const separator =
+        WMS_CONFIG.WMS_URL.includes("?")
+          ? "&"
+          : "?";
+
+      frame.src =
+        WMS_CONFIG.WMS_URL +
+        separator +
+        "_wms_reload=" +
+        Date.now();
+
+      timeoutId = setTimeout(function () {
+
+        if (!loaded) {
+
+          showError();
+
+        }
+
+      }, WMS_CONFIG.LOAD_TIMEOUT);
+
+    }
+
+
+    /* =========================================================
+       OPEN WMS DIRECTLY
+       ========================================================= */
+
+    function openWMS() {
+
+      window.open(
+        WMS_CONFIG.WMS_URL,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    }
+
+
+    /* =========================================================
+       BUTTON EVENTS
+       ========================================================= */
+
+    retryButton.addEventListener(
+      "click",
+      reloadWMS
+    );
+
+    openButton.addEventListener(
+      "click",
+      openWMS
+    );
+
+
+    /* =========================================================
+       ONLINE / OFFLINE DETECTION
+       ========================================================= */
+
+    window.addEventListener(
+      "offline",
+      function () {
+
+        if (!loaded) {
+          showError();
+        }
+
+      }
+    );
+
+
+    window.addEventListener(
+      "online",
+      function () {
+
+        if (!loaded) {
+          reloadWMS();
+        }
+
+      }
+    );
+
+
+    /* =========================================================
+       KEYBOARD
+       ========================================================= */
+
+    document.addEventListener(
+      "keydown",
+      function (event) {
+
+        /*
+         * Jangan memblokir F11.
+         * Browser tetap mengatur fullscreen.
+         */
+
+        if (
+          event.key === "F5" &&
+          event.ctrlKey === false
+        ) {
+
+          /*
+           * F5 tetap boleh dipakai untuk refresh.
+           * Tidak dicegat.
+           */
+
+        }
+
+      }
+    );
+
+
+    /* =========================================================
+       START
+       ========================================================= */
+
+    initializeWMS();
+
+  </script>
+
+</body>
+</html>
+```
